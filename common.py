@@ -21,12 +21,19 @@ class TvProgramData:
         description: [str|None],
         available_archive: bool
     ):
+        #формате YYYY-mm-ddThh:mm:ss+tz:tz (пример - 2024-07-22T16:27:01+00:00)
         self.datetime_start = datetime_start
+        #формате YYYY-mm-ddThh:mm:ss+tz:tz (пример - 2024-07-22T16:27:01+00:00)
         self.datetime_finish = datetime_finish
+        #channel - строка - название телеканала
         self.channel = channel
+        #строка - название телепередачи
         self.title = title
+
         self.channel_logo_url = channel_logo_url
+        #строка - URL на изображение телеканала
         self.description = description
+        #число 1 или 0 - доступность архива
         self.available_archive = available_archive
 
 class TvParser(ABC):
@@ -35,8 +42,11 @@ class TvParser(ABC):
         pass
 
 
+def format_date(datetime):
+    return datetime.strftime("%Y-%m-%dT%H:%M:%S+00:00")
+
 def escape(input: str):
-    return input.replace("\"", "\\\"")
+    return input
 
 async def out_to_csv_async(tvPrograms: List[TvProgramData], config: Config):
     async with async_open(config.output_path, "w+") as asyncStream:

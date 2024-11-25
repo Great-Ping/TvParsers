@@ -1,1 +1,0 @@
-"datetime_start: str,     ";"datetime_finish: str,    ";"channel: str,";"title: str,              ";"channel_logo_url: str,   ";"description: [str|None], ";"available_archive: bool  "
