@@ -1,48 +1,66 @@
 import asyncio
 import aiohttp
-from datetime import datetime
-
-from common import *
+from datetime import datetime, UTC, timedelta
 from bs4 import BeautifulSoup
 
+from common import *
 
 class MeltemTvParser(TvParser):
-    sourceUrl = "https://www.meltemtv.com.tr/yayin-akisi"
+    source_url = "https://www.meltemtv.com.tr/yayin-akisi"
+    channel_name = "Meltem TV"
+    #channel_logo_url = "https://i.hizliresim.com/n9otvqm.png"
+    channel_logo_url = None
 
-    def parse_day_streams(self, stream_list, current_day):
+    def parse_day_programs(self, stream_list, current_day):
+        day_programs = []
+        stream_index = 0
         for stream_info in stream_list.find_all("div", {"class": "row"}):
-            print(stream_info)
+            hours = int(stream_info.label.strong.contents[0].replace(":", ""))
+            minutes = int(stream_info.label.contents[1])
+            show_name = stream_info.span.i.contents[0]
+            
+            datetime_start = current_day.replace(
+                hour=hours,
+                minute=minutes,
+                second=0
+            )
+            
+            day_programs.append(TvProgramData(
+                datetime_start,
+                None,
+                self.channel_name,
+                show_name,
+                self.channel_logo_url,
+                None,
+                False
+            ))
+            stream_index += 1
+
+        return day_programs
 
     def parse_html(self, html_input: str):
         
         html = BeautifulSoup(html_input, 'html.parser')
         stream_lists = html.find_all("div", {"class": "streamList"})
-        
-        current_day = datetime.utcnow()
+        parsed_programs = []
+
+        current_day = datetime.now(UTC)
 
         for stream_list in stream_lists:
-            self.parse_day_streams(stream_list, current_day)
-            current_day = current_day.replace(day = current_day.day + 1)
+            day_streams = self.parse_day_programs(stream_list, current_day)
+            parsed_programs.extend(day_streams)
+            current_day += timedelta(days=1)
+        
 
-        return []
+        fill_finish_date_by_next_start_date(parsed_programs)        
 
-    async def parse_async(self):
+        return parsed_programs
+
+    async def parse_async(self) -> List[TvProgramData]:
         async with aiohttp.ClientSession() as session:
-            async with session.get(self.sourceUrl) as resp:
+            async with session.get(self.source_url) as resp:
                 html_text = await resp.text()
                 return self.parse_html(html_text)
-
-        # return [
-        #     TvProgramData(
-        #         "datetime_start: str,     ",        
-        #         "datetime_finish: str,    ",      
-        #         "channel: str,",
-        #         "title: str,              ",  
-        #         "channel_logo_url: str,   ",      
-        #         "description: [str|None], ",      
-        #         "available_archive: bool  "     
-        #     )
-        # ]
 
 if (__name__=="__main__"):
     parser = MeltemTvParser()

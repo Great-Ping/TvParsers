@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime
 from typing import *
 from aiofile import async_open
 from abc import ABC, abstractmethod, abstractproperty
@@ -13,11 +14,11 @@ class Config:
 class TvProgramData:
     def __init__(
         self, 
-        datetime_start: str, 
-        datetime_finish: str,
+        datetime_start: datetime, 
+        datetime_finish: [datetime|None],
         channel: str,
         title: str,
-        channel_logo_url: str,
+        channel_logo_url: [str|None],
         description: [str|None],
         available_archive: bool
     ):
@@ -41,24 +42,34 @@ class TvParser(ABC):
     async def parse_async(self) ->  list[TvProgramData]:
         pass
 
-
-def format_date(datetime):
-    return datetime.strftime("%Y-%m-%dT%H:%M:%S+00:00")
-
 def escape(input: str):
+    if (input is None):
+        return ""
+
     return input
+
+def format_date(date: [datetime|None]):
+    if (date is None):
+        return ""
+
+    return date.isoformat("T", "seconds")
+
+def fill_finish_date_by_next_start_date(tv_programs: List[TvProgramData]):
+    for i in range(1, len(tv_programs)):
+        tv_programs[i-1].datetime_finish = tv_programs[i].datetime_start
+
 
 async def out_to_csv_async(tvPrograms: List[TvProgramData], config: Config):
     async with async_open(config.output_path, "w+") as asyncStream:
         for tvProgram in tvPrograms:
             await asyncStream.write(
-                f"\"{escape(tvProgram.datetime_start)}\"" 
-                + f";\"{escape(tvProgram.datetime_finish)}\""
+                f"\"{escape(format_date(tvProgram.datetime_start))}\"" 
+                + f";\"{escape(format_date(tvProgram.datetime_finish))}\""
                 + f";\"{escape(tvProgram.channel)}\""
                 + f";\"{escape(tvProgram.title)}\""
                 + f";\"{escape(tvProgram.channel_logo_url)}\""
                 + f";\"{escape(tvProgram.description)}\""
-                + f";\"{tvProgram.available_archive}\""
+                + f";\"{str(int(tvProgram.available_archive))}\""
                 + "\n"
             )
 
