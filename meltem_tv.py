@@ -1,6 +1,6 @@
 import asyncio
 import aiohttp
-from datetime import datetime, UTC, timedelta
+from datetime import datetime, UTC, timedelta, timezone
 from bs4 import BeautifulSoup
 
 from common import *
@@ -10,6 +10,7 @@ class MeltemTvParser(TvParser):
     channel_name = "Meltem TV"
     #channel_logo_url = "https://i.hizliresim.com/n9otvqm.png"
     channel_logo_url = None
+    time_zone_delta = timedelta(hours=3)
 
     def parse_day_programs(self, stream_list, current_day):
         day_programs = []
@@ -44,7 +45,8 @@ class MeltemTvParser(TvParser):
         stream_lists = html.find_all("div", {"class": "streamList"})
         parsed_programs = []
 
-        current_day = datetime.now(UTC)
+        tz = timezone(self.time_zone_delta)
+        current_day = datetime.now(tz)
 
         for stream_list in stream_lists:
             day_streams = self.parse_day_programs(stream_list, current_day)
