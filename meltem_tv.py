@@ -46,7 +46,7 @@ class MeltemTvParser(TvParser):
         parsed_programs = []
 
         tz = timezone(self.time_zone_delta)
-        current_day = datetime.now(tz)
+        current_day = get_monday_datetime(tz)
 
         for stream_list in stream_lists:
             day_streams = self.parse_day_programs(stream_list, current_day)

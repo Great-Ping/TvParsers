@@ -1,5 +1,5 @@
 import asyncio
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from typing import *
 from aiofile import async_open
 from abc import ABC, abstractmethod, abstractproperty
@@ -41,6 +41,11 @@ class TvParser(ABC):
     @abstractmethod
     async def parse_async(self) ->  list[TvProgramData]:
         pass
+
+def get_monday_datetime(timezone):
+    now = datetime.now(timezone)
+    now -= timedelta(days=now.weekday())
+    return now
 
 def escape(input: str):
     if (input is None):
