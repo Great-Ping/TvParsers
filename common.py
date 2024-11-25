@@ -46,7 +46,7 @@ def escape(input: str):
     if (input is None):
         return ""
 
-    return input
+    return f"\"{input}\""
 
 def format_date(date: [datetime|None]):
     if (date is None):
@@ -63,13 +63,13 @@ async def out_to_csv_async(tvPrograms: List[TvProgramData], config: Config):
     async with async_open(config.output_path, "w+") as asyncStream:
         for tvProgram in tvPrograms:
             await asyncStream.write(
-                f"\"{escape(format_date(tvProgram.datetime_start))}\"" 
-                + f";\"{escape(format_date(tvProgram.datetime_finish))}\""
-                + f";\"{escape(tvProgram.channel)}\""
-                + f";\"{escape(tvProgram.title)}\""
-                + f";\"{escape(tvProgram.channel_logo_url)}\""
-                + f";\"{escape(tvProgram.description)}\""
-                + f";\"{str(int(tvProgram.available_archive))}\""
+                f"{escape(format_date(tvProgram.datetime_start))}" 
+                + f";{escape(format_date(tvProgram.datetime_finish))}"
+                + f";{escape(tvProgram.channel)}"
+                + f";{escape(tvProgram.title)}"
+                + f";{escape(tvProgram.channel_logo_url)}"
+                + f";{escape(tvProgram.description)}"
+                + f";{str(int(tvProgram.available_archive))}"
                 + "\n"
             )
 

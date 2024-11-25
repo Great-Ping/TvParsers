@@ -31,7 +31,7 @@ class MeltemTvParser(TvParser):
                 self.channel_name,
                 show_name,
                 self.channel_logo_url,
-                None,
+                "",
                 False
             ))
             stream_index += 1
