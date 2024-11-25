@@ -31,7 +31,7 @@ class MeltemTvParser(TvParser):
                 self.channel_name,
                 show_name,
                 self.channel_logo_url,
-                "",
+                None,
                 False
             ))
             stream_index += 1
@@ -50,7 +50,6 @@ class MeltemTvParser(TvParser):
             day_streams = self.parse_day_programs(stream_list, current_day)
             parsed_programs.extend(day_streams)
             current_day += timedelta(days=1)
-        
 
         fill_finish_date_by_next_start_date(parsed_programs)        
 

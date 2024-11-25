@@ -44,7 +44,7 @@ class TvParser(ABC):
 
 def escape(input: str):
     if (input is None):
-        return ""
+        return "\"\""
 
     return f"\"{input}\""
 
@@ -60,7 +60,11 @@ def fill_finish_date_by_next_start_date(tv_programs: List[TvProgramData]):
 
 
 async def out_to_csv_async(tvPrograms: List[TvProgramData], config: Config):
+
     async with async_open(config.output_path, "w+") as asyncStream:
+        await asyncStream.write("\"datetime_start\";\"datetime_finish\";\"channel\";\"title\";\"channel_logo_url\";\"description\";\"available_archive\"\n")
+
+
         for tvProgram in tvPrograms:
             await asyncStream.write(
                 f"{escape(format_date(tvProgram.datetime_start))}" 
