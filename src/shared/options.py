@@ -39,3 +39,5 @@ class Options:
         self.save_config = save_config
 
     
+    def from_args():
+        pass
