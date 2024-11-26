@@ -67,6 +67,8 @@ def fill_finish_date_by_next_start_date(tv_programs: List[TvProgramData]):
     for i in range(1, len(tv_programs)):
         tv_programs[i-1].datetime_finish = tv_programs[i].datetime_start
 
+    if (len(tv_programs) == 0):
+        return 
     last_program = tv_programs[-1]
     last_program.datetime_finish = last_program.datetime_start.replace(
         hour=23,
