@@ -59,9 +59,19 @@ def format_date(date: [datetime|None]):
 
     return date.isoformat("T", "seconds")
 
+#Заполняет дату и время для каждой программы, 
+#основываясь на дате начала предыдущей программы.
+#Для последней программы дата окончания 23:59 этого же дня
 def fill_finish_date_by_next_start_date(tv_programs: List[TvProgramData]):
     for i in range(1, len(tv_programs)):
         tv_programs[i-1].datetime_finish = tv_programs[i].datetime_start
+
+    last_program = tv_programs[-1]
+    last_program.datetime_finish = last_program.datetime_start.replace(
+        hour=23,
+        minute=59
+    )
+    
 
 
 async def out_to_csv_async(tvPrograms: List[TvProgramData], config: Config):
