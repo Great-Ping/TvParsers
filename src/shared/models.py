@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import Union
+from .options import ParserOptions
 
 class TvProgramData:
     #формате YYYY-mm-ddThh:mm:ss+tz:tz (пример - 2024-07-22T16:27:01+00:00)
@@ -37,6 +38,11 @@ class TvProgramData:
         self.available_archive = available_archive
 
 class TvParser:    
+    options: ParserOptions
+
+    def __init__(self, options: ParserOptions) -> None:
+        self.options = options
+
     async def parse_async(self) ->  list[TvProgramData]:
         pass
 

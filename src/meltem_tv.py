@@ -4,7 +4,7 @@ from datetime import datetime, UTC, timedelta, timezone
 from bs4 import BeautifulSoup
 
 from shared.models import TvParser, TvProgramData
-from shared.options import SaveOptions
+from shared.options import ParserOptions, SaveOptions, read_command_line_options
 from shared.output import run_parser_out_to_csv
 from shared.utils import fill_finish_date_by_next_start_date, get_monday_datetime
 
@@ -15,7 +15,10 @@ class MeltemTvParser(TvParser):
     __channel_name = "Meltem TV"
     #__channel_logo_url = "https://i.hizliresim.com/n9otvqm.png"
     __channel_logo_url = None
-    __time_zone_delta = timedelta(hours=3)
+    __response_time_zone = timezone(timedelta(hours=3))
+
+    def __init__(self, options: ParserOptions) -> None:
+        super().__init__(options)
 
     def __parse_day_programs(self, stream_list, current_day):
         day_programs = []
@@ -28,7 +31,8 @@ class MeltemTvParser(TvParser):
             datetime_start = current_day.replace(
                 hour=hours,
                 minute=minutes,
-                second=0
+                second=0,
+                tzinfo=self.__response_time_zone
             )
             
             day_programs.append(TvProgramData(
@@ -50,8 +54,7 @@ class MeltemTvParser(TvParser):
         stream_lists = html.find_all("div", {"class": "streamList"})
         parsed_programs = []
 
-        tz = timezone(self.__time_zone_delta)
-        current_day = get_monday_datetime(tz)
+        current_day = get_monday_datetime(self.__response_time_zone)
 
         for stream_list in stream_lists:
             day_streams = self.__parse_day_programs(stream_list, current_day)
@@ -69,5 +72,6 @@ class MeltemTvParser(TvParser):
                 return self.__parse_html(html_text)
 
 if (__name__=="__main__"):
-    parser = MeltemTvParser()
-    run_parser_out_to_csv(parser, SaveOptions("meltem_tv.csv"))
+    options = read_command_line_options()
+    parser = MeltemTvParser(options.parser_options)
+    run_parser_out_to_csv(parser, options.save_options)

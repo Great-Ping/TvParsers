@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 
 from shared.models import TvProgramData
 from shared.models import TvParser
-from shared.options import SaveOptions
+from shared.options import Options, ParserOptions, SaveOptions, read_command_line_options
 from shared.output import run_parser_out_to_csv
 from shared.utils import fill_finish_date_by_next_start_date
 
@@ -15,17 +15,47 @@ from shared.utils import fill_finish_date_by_next_start_date
 #Из за чего появились ленивые параметры day_offset и days_limit,
 #которые указывают смещение (относительно текущего дня) и количетсво дней которые необходимо запарсить
 class SemerkandTvParser(TvParser):
-    #channel_url = "https://dosttv.com/yayin-akisi/"
+    options: ParserOptions
+    #__channel_url = "https://dosttv.com/yayin-akisi/"
     __source_url = "https://dosttv.com/wp-admin/admin-ajax.php"
     __channel_name = "Dost TV"
-    #channel_logo_url = "https://dosttv.com/wp-content/uploads/2022/02/dost_logo.png"
+    #__channel_logo_url = "https://dosttv.com/wp-content/uploads/2022/02/dost_logo.png"
     __channel_logo_url = None
-    __time_zone_delta = timedelta(hours=3)
+    __response_time_zone = timezone(timedelta(hours=3))
     __form_data = "action=extvs_get_schedule_simple&param_shortcode=%7B%22style%22%3A%222%22%2C%22fullcontent_in%22%3A%22collapse%22%2C%22show_image%22%3A%22show%22%2C%22channel%22%3A%22Dost+TV%22%2C%22slidesshow%22%3A%22%22%2C%22slidesscroll%22%3A%22%22%2C%22start_on%22%3A%22%22%2C%22before_today%22%3A%22%22%2C%22after_today%22%3A%227%22%2C%22order%22%3A%22DESC%22%2C%22orderby%22%3A%22date%22%2C%22meta_key%22%3A%22%22%2C%22meta_value%22%3A%22%22%2C%22order_channel%22%3A%22yes%22%2C%22class%22%3A%22%22%2C%22ID%22%3A%22ex-8331%22%7D&chanel=Dost+TV&date="
 
-    def __init__(self, day_offset, days_limit):
-        self.day_offset = day_offset
-        self.days_limit = days_limit
+    def __init__(self, options: ParserOptions):
+        super().__init__(options)
+
+    async def parse_async(self) -> list[TvProgramData]:
+        parsed_programs = []
+
+        async with aiohttp.ClientSession() as session:
+            headers = {
+                "Accept": "application/json, text/javascript, */*; q=0.01",
+                "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
+            }
+
+            current_day, finish_day = self.__prepare_days()
+
+            while current_day <= finish_day:
+                tz_unix = int((current_day - datetime(1970,1,1, tzinfo=UTC)).total_seconds())
+                data = self.__form_data + str(tz_unix)
+                async with session.post(self.__source_url, headers=headers, data=data) as resp:
+                    resp_text = await resp.text()
+                    resp_json = json.loads(resp_text)
+
+                    parsed_programs.extend(
+                        self.__parse_html(resp_json["html"], current_day)
+                    )
+
+                current_day += timedelta(days=1)
+            
+        fill_finish_date_by_next_start_date(parsed_programs)
+        return parsed_programs
+
+    def __is_null_or_whitespace(self, node):
+        return node == "" or node == "\n" or node == "\t" or node != " " 
 
     def __get_node_text(self, node):
         stack = [node]
@@ -33,7 +63,10 @@ class SemerkandTvParser(TvParser):
         while(len(stack) > 0):
             node = stack.pop()
             if (isinstance(node, str)):
-                result += node
+                if (self.__is_null_or_whitespace(node)):
+                    continue
+
+                result += node.replace("\n", "") + "\n"
             else:
                 for index, child in enumerate(node.children):
                     stack.insert(index, child)
@@ -48,6 +81,21 @@ class SemerkandTvParser(TvParser):
 
         return result
 
+    def __prepare_days(self) -> tuple[datetime, datetime]:
+        current_day: datetime
+        finish_day: datetime 
+        if (self.options.start_date is not None):
+            current_day = self.options.start_date
+        else:
+            current_day = datetime.now(UTC).replace(hour=0, minute=0, second=0, microsecond=0)
+        
+        if (self.options.finish_date is not None):
+            finish_day = self.options.finish_date
+        else:
+            finish_day = current_day + timedelta(days=7)
+
+        return (current_day, finish_day)
+            
 
     def __parse_html(self, html_input: str, current_day: datetime):
         
@@ -67,6 +115,7 @@ class SemerkandTvParser(TvParser):
             datetime_start = current_day.replace(
                 hour=hours,
                 minute=minutes,
+                tzinfo=self.__response_time_zone,
                 second=0
             )
 
@@ -88,37 +137,8 @@ class SemerkandTvParser(TvParser):
 
         return parsed_programs
 
-    async def parse_async(self) -> list[TvProgramData]:
-        parsed_programs = []
-
-        async with aiohttp.ClientSession() as session:
-            headers = {
-                "Accept": "application/json, text/javascript, */*; q=0.01",
-                "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
-            }
-
-            tz = timezone(self.__time_zone_delta)
-            current_day = datetime.now(tz).replace(hour=0, minute=0, second=0, microsecond=0)
-            current_day += timedelta(days=self.day_offset)
-
-
-            for i in range(0, self.days_limit):
-                tz_unix = int((current_day - datetime(1970,1,1, tzinfo=tz)).total_seconds())
-                data = self.__form_data + str(tz_unix)
-                async with session.post(self.__source_url, headers=headers, data=data) as resp:
-
-                    resp_text = await resp.text()
-                    resp_json = json.loads(resp_text)
-
-                    parsed_programs.extend(
-                        self.__parse_html(resp_json["html"], current_day)
-                    )
-
-            current_day += timedelta(days=1)
-            
-        fill_finish_date_by_next_start_date(parsed_programs)
-        return parsed_programs
 
 if (__name__=="__main__"):
-    parser = SemerkandTvParser(day_offset=0, days_limit=7)
-    run_parser_out_to_csv(parser, SaveOptions("dost_tv.csv"))
+    options = read_command_line_options()
+    parser = SemerkandTvParser(options.parser_options)
+    run_parser_out_to_csv(parser, options.save_options)

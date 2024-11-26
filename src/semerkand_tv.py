@@ -3,7 +3,7 @@ import aiohttp
 from datetime import datetime, UTC, timedelta, timezone
 from bs4 import BeautifulSoup
 
-from shared.options import SaveOptions
+from shared.options import SaveOptions, read_command_line_options
 from shared.models import TvParser, TvProgramData
 from shared.output import run_parser_out_to_csv
 from shared.utils import fill_finish_date_by_next_start_date, get_monday_datetime
@@ -13,9 +13,9 @@ class SemerkandTvParser(TvParser):
     __channel_name = "Semerkand TV"
     #__channel_logo_url = "https://www.semerkandtv.com.tr/Content/img/logo.png"
     __channel_logo_url = None
-    __time_zone_delta = timedelta(hours=3)
+    __response_time_zone = timezone(timedelta(hours=3))
 
-    def __parse_day_programs(self, current_day_programs, current_day):
+    def __parse_day_programs(self, current_day_programs, current_day: datetime):
         parsed_programs = []
         stream_index = 0
         for program_info in current_day_programs.find_all("div", {"class": "item"}):
@@ -31,7 +31,8 @@ class SemerkandTvParser(TvParser):
             datetime_start = current_day.replace(
                 hour=hours,
                 minute=minutes,
-                second=0
+                second=0,
+                tzinfo=self.__response_time_zone
             )
             
             parsed_programs.append(TvProgramData(
@@ -53,8 +54,7 @@ class SemerkandTvParser(TvParser):
         programs = html.find_all("div", {"class": "streaming"})
         parsed_programs = []
 
-        tz = timezone(self.__time_zone_delta)
-        current_day = get_monday_datetime(tz)
+        current_day = get_monday_datetime(self.__response_time_zone)
 
         for current_day_programs in programs:
             day_streams = self.__parse_day_programs(current_day_programs, current_day)
@@ -72,5 +72,6 @@ class SemerkandTvParser(TvParser):
                 return self.__parse_html(html_text)
 
 if (__name__=="__main__"):
-    parser = SemerkandTvParser()
-    run_parser_out_to_csv(parser, SaveOptions("semerkand_tv.csv"))
+    options = read_command_line_options()
+    parser = SemerkandTvParser(options.parser_options)
+    run_parser_out_to_csv(parser, options.save_options)

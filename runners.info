@@ -1,0 +1,25 @@
+default:
+  annotation: Поддерживаются всеми парсерами
+  parameters:
+    - name: --output
+      required: false
+      aliases: ["-o"] 
+      description: абсолютный путь, куда будет сохранён итоговый csv-файл, по умолчанию "out.csv"
+      example: python ikra_tv.py -o /usr/trt1.csv
+
+special:
+  annotation: Поддерживаются узким кругом парсеров
+  parameters:
+    - name: --start-date
+      supported: ["dost_tv.py"]
+      required: false
+      aliases: ["-sd"] 
+      description: utc+0 дата в формате YYYY-mm-dd, определяет с какого числа (включительно) будет браться расписание, по умолчанию now
+      example: python .\src\dost_tv.py -sd "2024-11-20"
+
+    - name: --finish-date
+      required: false
+      supported: ["dost_tv.py"]
+      aliases: ["-fd"] 
+      description: utc+0 дата в формате YYYY-mm-dd, определяет по какое число (включительно) будет браться расписание, по умолчанию now + 7 дней
+      example: python .\src\dost_tv.py -sd "2024-11-20"

@@ -1,5 +1,6 @@
 import asyncio
 from datetime import datetime
+import os
 from typing import *
 from aiofile import async_open
 
@@ -30,7 +31,7 @@ def __to_csv_line(data:TvProgramData):
     + "\n")
 
 async def __out_to_csv_async(tvPrograms: list[TvProgramData], options: SaveOptions):
-
+    os.makedirs(os.path.dirname(options.output_path), exist_ok=True)
     async with async_open(options.output_path, "w+") as asyncStream:
         await asyncStream.write("\"datetime_start\";\"datetime_finish\";\"channel\";\"title\";\"channel_logo_url\";\"description\";\"available_archive\"\n")
 
