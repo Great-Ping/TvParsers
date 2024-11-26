@@ -3,10 +3,13 @@ import aiohttp
 from datetime import datetime, UTC, timedelta, timezone
 from bs4 import BeautifulSoup
 
-from common import *
+from shared.models import TvParser, TvProgramData
+from shared.options import SaveOptions
+from shared.output import run_parser_out_to_csv
+from shared.utils import fill_finish_date_by_next_start_date, get_monday_datetime
 
 class IkraTvParser(TvParser):
-    day_urls = [
+    __day_urls = [
         "https://www.ikratv.com/yayin-akisi/pazartesi",
         "https://www.ikratv.com/yayin-akisi/sali",
         "https://www.ikratv.com/yayin-akisi/carsamba",
@@ -16,12 +19,12 @@ class IkraTvParser(TvParser):
         "https://www.ikratv.com/yayin-akisi/pazar"
     ]
 
-    channel_name = "İkra TV"
-    #channel_logo_url = "https://www.ikratv.com/templates/default/images/logo.png"
-    channel_logo_url = None
-    time_zone_delta = timedelta(hours=3)
+    __channel_name = "İkra TV"
+    #__channel_logo_url = "https://www.ikratv.com/templates/default/images/logo.png"
+    __channel_logo_url = None
+    __time_zone_delta = timedelta(hours=3)
 
-    def parse_html(self, html_input: str, current_day: datetime):
+    def __parse_html(self, html_input: str, current_day: datetime):
         html = BeautifulSoup(html_input, 'html.parser')
         programs = html.find("div", {"class": "streaming"})
         parsed_programs = []
@@ -41,27 +44,27 @@ class IkraTvParser(TvParser):
             parsed_programs.append(TvProgramData(
                 datetime_start,
                 None,
-                self.channel_name,
+                self.__channel_name,
                 show_name,
-                self.channel_logo_url,
+                self.__channel_logo_url,
                 None,
                 False
             ))
 
         return parsed_programs
     
-    async def parse_async(self) -> List[TvProgramData]:
+    async def parse_async(self) -> list[TvProgramData]:
         programs = []
 
-        tz = timezone(self.time_zone_delta)
+        tz = timezone(self.__time_zone_delta)
         current_day = get_monday_datetime(tz)
 
         async with aiohttp.ClientSession() as session:
-            for url in self.day_urls:
+            for url in self.__day_urls:
                 async with session.get(url) as resp:
                     html = await resp.text()
                     programs.extend(
-                        self.parse_html(html, current_day)
+                        self.__parse_html(html, current_day)
                     )
                     current_day += timedelta(days=1)
 
@@ -71,4 +74,4 @@ class IkraTvParser(TvParser):
 
 if (__name__=="__main__"):
     parser = IkraTvParser()
-    run_parser_out_to_csv(parser, Config("ikra_tv.csv"))
+    run_parser_out_to_csv(parser, SaveOptions("ikra_tv.csv"))

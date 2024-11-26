@@ -1,16 +1,20 @@
 import asyncio
 import aiohttp
+from typing import Union
 from datetime import datetime, UTC, timedelta, timezone
 from bs4 import BeautifulSoup
 
-from common import *
+from shared.models import TvParser, TvProgramData
+from shared.options import SaveOptions
+from shared.output import run_parser_out_to_csv
+from shared.utils import fill_finish_date_by_next_start_date, get_monday_datetime
 
 class Trt1Parser(TvParser):
-    source_url = "https://www.trt1.com.tr/yayin-akisi"
-    channel_name = "TRT 1"
-    #channel_logo_url = "https://www.semerkandtv.com.tr/Content/img/logo.png"
-    channel_logo_url = None
-    time_zone_delta = timedelta(hours=3)
+    __source_url = "https://www.trt1.com.tr/yayin-akisi"
+    __channel_name = "TRT 1"
+    #__channel_logo_url = "https://www.semerkandtv.com.tr/Content/img/logo.png"
+    __channel_logo_url = None
+    __time_zone_delta = timedelta(hours=3)
 
     def __init__(
             self,
@@ -20,7 +24,7 @@ class Trt1Parser(TvParser):
         self.target_day = target_day
 
 
-    def parse_day_programs(self, current_day_programs, current_day):
+    def __parse_day_programs(self, current_day_programs, current_day):
         parsed_programs = []
         stream_index = 0
         for program_info in current_day_programs.ul.find_all("li", recursive=False):
@@ -40,9 +44,9 @@ class Trt1Parser(TvParser):
             parsed_programs.append(TvProgramData(
                 datetime_start,
                 None,
-                self.channel_name,
+                self.__channel_name,
                 show_name,
-                self.channel_logo_url,
+                self.__channel_logo_url,
                 None,
                 False
             ))
@@ -50,18 +54,18 @@ class Trt1Parser(TvParser):
 
         return parsed_programs
 
-    def parse_html(self, html_input: str):
+    def __parse_html(self, html_input: str):
         
         html = BeautifulSoup(html_input, 'html.parser')
         programs = html.find_all("div", {"role": "tabpanel"})
         parsed_programs = []
 
-        tz = timezone(self.time_zone_delta)
+        tz = timezone(self.__time_zone_delta)
         current_day = get_monday_datetime(tz)
 
         for current_day_programs in programs:
             if (self.target_day is None or current_day >= self.target_day):
-                day_streams = self.parse_day_programs(current_day_programs, current_day)
+                day_streams = self.__parse_day_programs(current_day_programs, current_day)
                 parsed_programs.extend(
                     sorted(day_streams, key=lambda x: x.datetime_start)
                 )
@@ -72,12 +76,12 @@ class Trt1Parser(TvParser):
 
         return parsed_programs
 
-    async def parse_async(self) -> List[TvProgramData]:
+    async def parse_async(self) -> list[TvProgramData]:
         async with aiohttp.ClientSession() as session:
-            async with session.get(self.source_url) as resp:
+            async with session.get(self.__source_url) as resp:
                 html_text = await resp.text()
-                return self.parse_html(html_text)
+                return self.__parse_html(html_text)
 
 if (__name__=="__main__"):
     parser = Trt1Parser()
-    run_parser_out_to_csv(parser, Config("trt1.csv"))
+    run_parser_out_to_csv(parser, SaveOptions("trt1.csv"))
