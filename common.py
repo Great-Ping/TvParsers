@@ -51,6 +51,7 @@ def escape(input: str):
     if (input is None):
         return "\"\""
 
+    input = input.replace("\"", "\"\"")
     return f"\"{input}\""
 
 def format_date(date: [datetime|None]):
