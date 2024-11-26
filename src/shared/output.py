@@ -31,7 +31,10 @@ def __to_csv_line(data:TvProgramData):
     + "\n")
 
 async def __out_to_csv_async(tvPrograms: list[TvProgramData], options: SaveOptions):
-    os.makedirs(os.path.dirname(options.output_path), exist_ok=True)
+    dirname = os.path.dirname(options.output_path)
+    if (dirname != None and dirname != ""):
+        os.makedirs(dirname, exist_ok=True)
+        
     async with async_open(options.output_path, "w+") as asyncStream:
         await asyncStream.write("\"datetime_start\";\"datetime_finish\";\"channel\";\"title\";\"channel_logo_url\";\"description\";\"available_archive\"\n")
 
