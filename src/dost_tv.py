@@ -8,13 +8,13 @@ from shared.models import TvProgramData
 from shared.models import TvParser
 from shared.options import Options, ParserOptions, SaveOptions, read_command_line_options
 from shared.output import run_parser_out_to_csv
-from shared.utils import fill_finish_date_by_next_start_date
+from shared.utils import fill_finish_date_by_next_start_date, is_none_or_empty
 
 
 #Не парсит саму старицу с рассписанием, а сразу парсит ответы от фреймворка на php
 #Из за чего появились ленивые параметры day_offset и days_limit,
 #которые указывают смещение (относительно текущего дня) и количетсво дней которые необходимо запарсить
-class SemerkandTvParser(TvParser):
+class DostTvParser(TvParser):
     options: ParserOptions
     #__channel_url = "https://dosttv.com/yayin-akisi/"
     __source_url = "https://dosttv.com/wp-admin/admin-ajax.php"
@@ -54,49 +54,6 @@ class SemerkandTvParser(TvParser):
         fill_finish_date_by_next_start_date(parsed_programs)
         return parsed_programs
 
-    def __is_null_or_whitespace(self, node):
-        return node == "" or node == "\n" or node == "\t" or node != " " 
-
-    def __get_node_text(self, node):
-        stack = [node]
-        result = ""
-        while(len(stack) > 0):
-            node = stack.pop()
-            if (isinstance(node, str)):
-                if (self.__is_null_or_whitespace(node)):
-                    continue
-
-                result += node.replace("\n", "") + "\n"
-            else:
-                for index, child in enumerate(node.children):
-                    stack.insert(index, child)
-
-        return result
-
-    def __parse_description(self, html_input):
-        result = ""
-        
-        for paragraph in html_input.children:
-            result += self.__get_node_text(paragraph)
-
-        return result
-
-    def __prepare_days(self) -> tuple[datetime, datetime]:
-        current_day: datetime
-        finish_day: datetime 
-        if (self.options.start_date is not None):
-            current_day = self.options.start_date
-        else:
-            current_day = datetime.now(UTC).replace(hour=0, minute=0, second=0, microsecond=0)
-        
-        if (self.options.finish_date is not None):
-            finish_day = self.options.finish_date
-        else:
-            finish_day = current_day + timedelta(days=7)
-
-        return (current_day, finish_day)
-            
-
     def __parse_html(self, html_input: str, current_day: datetime):
         
         html = BeautifulSoup(html_input, 'html.parser')
@@ -123,7 +80,7 @@ class SemerkandTvParser(TvParser):
             parsed_description = None
 
             if (description is not None):
-                parsed_description = self.__parse_description(description)
+                parsed_description = self.__get_node_text(description)
 
             parsed_programs.append(TvProgramData(
                 datetime_start,
@@ -137,8 +94,49 @@ class SemerkandTvParser(TvParser):
 
         return parsed_programs
 
+    def __prepare_days(self) -> tuple[datetime, datetime]:
+        current_day: datetime
+        finish_day: datetime 
+        if (self.options.start_date is not None):
+            current_day = self.options.start_date
+        else:
+            current_day = datetime.now(UTC).replace(hour=0, minute=0, second=0, microsecond=0)
+        
+        if (self.options.finish_date is not None):
+            finish_day = self.options.finish_date
+        else:
+            finish_day = current_day + timedelta(days=7)
+
+        return (current_day, finish_day)
+
+    
+    def __get_node_text(self, node):
+        if (isinstance(node, str)):
+            return node
+
+        stack = [*node.children]
+        result = ""
+
+        while(len(stack) > 0):
+            node = stack.pop(0)
+        
+            if (isinstance(node, str)):
+                if (is_none_or_empty(node)):
+                    continue
+                result += node
+            else:
+                if (node.name == "p" and len(result) > 0):
+                    result += "\n"
+                for index, child in enumerate(node.children):
+                    stack.insert(index, child)
+
+        return result
+
+ 
+
+
 
 if (__name__=="__main__"):
     options = read_command_line_options()
-    parser = SemerkandTvParser(options.parser_options)
+    parser = DostTvParser(options.parser_options)
     run_parser_out_to_csv(parser, options.save_options)
