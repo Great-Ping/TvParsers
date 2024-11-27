@@ -8,8 +8,6 @@ from shared.options import ParserOptions, SaveOptions, read_command_line_options
 from shared.output import run_parser_out_to_csv
 from shared.utils import fill_finish_date_by_next_start_date, get_monday_datetime
 
-
-
 class MeltemTvParser(TvParser):
     __source_url = "https://www.meltemtv.com.tr/yayin-akisi"
     __channel_name = "Meltem TV"

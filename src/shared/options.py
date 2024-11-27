@@ -71,8 +71,6 @@ def read_command_line_options() -> Options:
     if (args.separator is not None):
         separator = args.separator
 
-    print(separator)
-
     parser_options = ParserOptions(start_date, finish_date)
     save_options = SaveOptions(save_output, separator)
 
