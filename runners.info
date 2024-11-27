@@ -6,6 +6,11 @@ default:
       aliases: ["-o"] 
       description: абсолютный путь, куда будет сохранён итоговый csv-файл, по умолчанию "out.csv"
       example: python ikra_tv.py -o /usr/trt1.csv
+    - name: --sparator
+      required: false
+      aliases: ["-sep"] 
+      description: явно указывает разделитель между столбцами CSV файла, по умолчанию символ табуляции
+      example: python ikra_tv.py -sep ";"
 
 special:
   annotation: Поддерживаются узким кругом парсеров

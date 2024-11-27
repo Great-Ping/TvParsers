@@ -20,14 +20,14 @@ def __format_date(date: Union[datetime, None]):
 
     return date.isoformat("T", "seconds")
     
-def __to_csv_line(data:TvProgramData):
+def __to_csv_line(data:TvProgramData, options: SaveOptions):
     return (f"{escape(__format_date(data.datetime_start))}" 
-    + f";{escape(__format_date(data.datetime_finish))}"
-    + f";{escape(data.channel)}"
-    + f";{escape(data.title)}"
-    + f";{escape(data.channel_logo_url)}"
-    + f";{escape(data.description)}"
-    + f";{str(int(data.available_archive))}"
+    + f"{options.separator}{escape(__format_date(data.datetime_finish))}"
+    + f"{options.separator}{escape(data.channel)}"
+    + f"{options.separator}{escape(data.title)}"
+    + f"{options.separator}{escape(data.channel_logo_url)}"
+    + f"{options.separator}{escape(data.description)}"
+    + f"{options.separator}{str(int(data.available_archive))}"
     + "\n")
 
 async def __out_to_csv_async(tvPrograms: list[TvProgramData], options: SaveOptions):
@@ -36,11 +36,19 @@ async def __out_to_csv_async(tvPrograms: list[TvProgramData], options: SaveOptio
         os.makedirs(dirname, exist_ok=True)
         
     async with async_open(options.output_path, "w+") as asyncStream:
-        await asyncStream.write("\"datetime_start\";\"datetime_finish\";\"channel\";\"title\";\"channel_logo_url\";\"description\";\"available_archive\"\n")
+        await asyncStream.write(
+            "\"datetime_start\""
+            +f"{options.separator}\"datetime_finish\""
+            +f"{options.separator}\"channel\""
+            +f"{options.separator}\"title\""
+            +f"{options.separator}\"channel_logo_url\""
+            +f"{options.separator}\"description\""
+            +f"{options.separator}\"available_archive\""
+            +"\n")
 
         for tvProgram in tvPrograms:
             await asyncStream.write(
-                __to_csv_line(tvProgram)
+                __to_csv_line(tvProgram, options)
             )
 
 async def run_parser_out_to_csv_async(parser: TvParser, options: SaveOptions):
