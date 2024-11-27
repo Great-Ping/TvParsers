@@ -33,4 +33,4 @@ def is_none_or_empty(string: str):
     if (string is None):
         return True
     
-    return string != "" or string != " " or string != "\t" or string != "\n"
+    return string == "" or string == " " or string == "\t" or string == "\n"

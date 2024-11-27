@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 from shared.models import TvParser, TvProgramData
 from shared.options import SaveOptions, read_command_line_options
 from shared.output import run_parser_out_to_csv
-from shared.utils import fill_finish_date_by_next_start_date, get_monday_datetime
+from shared.utils import fill_finish_date_by_next_start_date, is_none_or_empty
 
 #Особенность, для определения временной зоны используется наивный алгоритм
 #Когда часы текущей передачи < предыдущей, значит наступил новый день
@@ -25,7 +25,6 @@ class TrtMusicParser(TvParser):
                 return self.__parse_html(html_text)
 
     def __parse_html(self, html_input: str):
-        
         html = BeautifulSoup(html_input, 'html.parser')
         program_days = html.find_all("ul", {"class": "event-list"})
         parsed_programs = []
@@ -46,6 +45,10 @@ class TrtMusicParser(TvParser):
             datetime_start = self.__parse_time(program_info.time)
             show_name = program_info.find("h1", {"class": "title"}).a.next
             show_description = program_info.find("p", {"class": "desc"}).a.next
+
+            if (is_none_or_empty(show_description)):
+                show_description = None
+
 
             parsed_programs.append(TvProgramData(
                 datetime_start,
