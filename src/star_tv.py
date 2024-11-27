@@ -58,8 +58,10 @@ class StartTvParser(TvParser):
             False
         )
     
-    def parse_time(self, time_str: str) -> datetime:
+    @staticmethod
+    def parse_time(time_str: str) -> datetime:
         return datetime.fromisoformat(time_str)
+    
 if (__name__=="__main__"):
     options = read_command_line_options()
     parser = StartTvParser(options.parser_options)

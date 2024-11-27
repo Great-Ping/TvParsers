@@ -50,6 +50,7 @@ async def __out_to_csv_async(tvPrograms: list[TvProgramData], options: SaveOptio
             await asyncStream.write(
                 __to_csv_line(tvProgram, options)
             )
+        return
 
 async def run_parser_out_to_csv_async(parser: TvParser, options: SaveOptions):
     parsedData = await parser.parse_async()

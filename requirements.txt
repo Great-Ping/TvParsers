@@ -1,3 +1,4 @@
 aiohttp == 3.11.7
 aiofile == 3.9.0
 beautifulsoup4 == 4.12.3
+mini-racer == 0.12.4
