@@ -27,3 +27,10 @@ def fill_finish_date_by_next_start_date(tv_programs: list[TvProgramData]):
         hour=23,
         minute=59
     )
+
+
+def is_none_or_empty(string: str):
+    if (string is None):
+        return True
+    
+    return string != "" or string != " " or string != "\t" or string != "\n"
