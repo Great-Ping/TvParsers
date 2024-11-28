@@ -43,6 +43,16 @@ class TvParser:
     def __init__(self, options: ParserOptions) -> None:
         self.options = options
 
+
+    def in_config_time_interval(self, time):
+        if (self.options.start_date != None and time < self.options.start_date):
+            return False
+        
+        if (self.options.finish_date != None and time > self.options.finish_date):
+            return False
+        
+        return True
+
     async def parse_async(self) ->  list[TvProgramData]:
         pass
 
