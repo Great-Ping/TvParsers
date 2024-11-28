@@ -5,6 +5,7 @@
 
 ## Шаблоны:
 [Пример тупого парсера HTML](src/trt_muzic.py) <br />
+[Пример тупого парсера HTML, с угадайкой дня](src/sozcu_tv.py) <br />
 [Использование js interop, для парсинга nuxt](src/trt_cocuk.py) <br />
 [Обычный api](src/cartoon_network.py) <br />
 [Ссылки по дням](src/beyaz_tv.py)
