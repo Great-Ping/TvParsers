@@ -14,7 +14,6 @@ from shared.utils import fill_finish_date_by_next_start_date, is_none_or_empty
 class TrtMusicParser(TvParser):
     __source_url = "https://trtmuzik.net.tr/yayin-akisi"
     __channel_name = "TRT MÜZİK"
-    #__channel_logo_url = "https://www.semerkandtv.com.tr/Content/img/logo.png"
     __channel_logo_url = None
     __response_time_zone = timezone(timedelta(hours=3))
 
@@ -40,7 +39,6 @@ class TrtMusicParser(TvParser):
 
     def __parse_day_programs(self, current_day_programs):
         parsed_programs = []
-        stream_index = 0
         for program_info in current_day_programs.find_all("li", recursive=False):
             datetime_start = self.__parse_time(program_info.time)
             show_name = program_info.find("h1", {"class": "title"}).a.next
@@ -59,7 +57,6 @@ class TrtMusicParser(TvParser):
                 show_description,
                     False
             ))
-            stream_index += 1
 
         return parsed_programs
     
