@@ -9,8 +9,6 @@ from shared.options import SaveOptions, read_command_line_options
 from shared.output import run_parser_out_to_csv
 from shared.utils import fill_finish_date_by_next_start_date, get_monday_datetime, is_none_or_empty
 
-#Особенность, для определения временной зоны используется наивный алгоритм
-#Когда часы текущей передачи < предыдущей, значит наступил новый день
 class SozcuTvParser(TvParser):
     __source_url = "https://www.szctv.com.tr/yayin-akisi"
     __channel_name = "Sözcü tv"
