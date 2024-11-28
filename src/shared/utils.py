@@ -34,3 +34,28 @@ def is_none_or_empty(string: str):
         return True
     
     return string == "" or string == " " or string == "\t" or string == "\n"
+
+
+#рекурсивный обход узла, возвращающий текст без тэгов
+#игнорирует тэг br
+def get_node_text(node):
+        if (isinstance(node, str)):
+            return node
+
+        stack = [*node.children]
+        result = ""
+
+        while(len(stack) > 0):
+            node = stack.pop(0)
+        
+            if (isinstance(node, str)):
+                if (is_none_or_empty(node)):
+                    continue
+                result += node
+            else:
+                if (node.name == "p" and len(result) > 0):
+                    result += "\n"
+                for index, child in enumerate(node.children):
+                    stack.insert(index, child)
+
+        return result
