@@ -16,7 +16,7 @@ special:
   annotation: Поддерживаются узким кругом парсеров
   parameters:
     - name: --start-date
-      supported: ["dost_tv.py"]
+      supported: ["dost_tv.py", "aksu_tv.py"]
       required: false
       aliases: ["-sd"] 
       description: utc+0 дата в формате YYYY-mm-dd, определяет с какого числа (включительно) будет браться расписание, по умолчанию now

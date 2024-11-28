@@ -57,7 +57,7 @@ class TrtMusicParser(TvParser):
                 show_name,
                 self.__channel_logo_url,
                 show_description,
-                False
+                    False
             ))
             stream_index += 1
 
