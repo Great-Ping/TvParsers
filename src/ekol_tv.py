@@ -7,11 +7,11 @@ from bs4 import BeautifulSoup
 from shared.models import TvParser, TvProgramData
 from shared.options import SaveOptions, read_command_line_options
 from shared.output import run_parser_out_to_csv
-from shared.utils import fill_finish_date_by_next_start_date, get_monday_datetime, is_none_or_empty
+from shared.utils import fill_finish_date_by_next_start_date, get_monday_datetime, get_node_text, is_none_or_empty
 
 class HaberGlobalParser(TvParser):
-    __source_url = "https://haberglobal.com.tr/yayin-akisi"
-    __channel_name = "Haber Global"
+    __source_url = "https://www.ekoltv.com.tr/yayin-akisi"
+    __channel_name = "Ekol TV"
     __channel_logo_url = None
     __response_time_zone = timezone(timedelta(hours=3))
 
@@ -23,26 +23,28 @@ class HaberGlobalParser(TvParser):
 
     def __parse_html(self, html_input: str):
         html = BeautifulSoup(html_input, 'html.parser')
-        program_days = html.find("div", {"class": "tab-content"})
+        program_days = html.find("div", {"id": "pills-tabContent"})
         parsed_programs = []
 
+        current_day = get_monday_datetime(self.__response_time_zone)
         for current_day_programs in program_days.find_all("div", recursive=False):
-            current_day = self.__parse_day_time(current_day_programs.attrs["id"])
             parsed_programs.extend(
-                self.__parse_day_programs(current_day_programs, current_day)
+                self.__parse_day_programs(current_day_programs.div, current_day)
             )
+            current_day += timedelta(days=1)
 
         fill_finish_date_by_next_start_date(parsed_programs)        
         return parsed_programs
 
     def __parse_day_programs(self, current_day_programs, current_day):
         parsed_programs = []
-        for program_info in current_day_programs.find_all("ul", recursive=False):
+        for program_info in current_day_programs.find_all("div", recursive=False):
+            program_info = program_info.a
             datetime_start = self.__parse_time(
-                program_info.find("li").text, 
+                program_info.find("h4").text, 
                 current_day
             )
-            show_name = program_info.find("span", {"class": "program-name"})
+            show_name = self.__replace_spaces(program_info.find("h5").text)
 
             parsed_programs.append(TvProgramData(
                 datetime_start,
@@ -55,11 +57,21 @@ class HaberGlobalParser(TvParser):
             ))
 
         return parsed_programs
-    
-    def __parse_day_time(self, date_str):
-        return datetime.strptime(date_str, "schedule_%d_%m_%Y").replace(
-            tzinfo=self.__response_time_zone
-        )
+
+    def __replace_spaces(self, string: str):
+        start = 0
+        end = len(string)
+        for i in string:
+            if (not is_none_or_empty(i)):
+                break
+            start += 1
+
+        for i in reversed(string):
+            if (not is_none_or_empty(i)):
+                break
+            end -= 1
+        
+        return string[start: end]
 
 
     def __parse_time(self, time, current_day) -> datetime:
