@@ -52,10 +52,9 @@ class BeyazTvParser(TvParser):
 
     async def parse_day_async(self, session, http_url, current_day) -> (datetime, list[TvProgramData]):
         async with session.get(http_url) as resp: 
-            return self.parse_day_html(await resp.text(), current_day)
+            return (current_day, self.parse_day_html(await resp.text(), current_day))
 
-    def parse_day_html(self, html_text:str, initial_current_day:datetime):
-        current_day = initial_current_day
+    def parse_day_html(self, html_text:str, current_day:datetime):
         html = BeautifulSoup(html_text, 'html.parser')
         parsed_programs = []
 
@@ -92,7 +91,7 @@ class BeyazTvParser(TvParser):
                 False
             ))
 
-        return (initial_current_day, parsed_programs)
+        return parsed_programs
 
     
     def get_day_urls(self, html_text) -> list[str]:
@@ -101,9 +100,8 @@ class BeyazTvParser(TvParser):
         a_tags = days_list.find_all("a")
 
         return [a_tag.attrs["href"] for a_tag in a_tags]
+
     
-    def parse_time(self, time_str: str) -> datetime:
-        return datetime.fromisoformat(time_str)
 if (__name__=="__main__"):
     options = read_command_line_options()
     parser = BeyazTvParser(options.parser_options)

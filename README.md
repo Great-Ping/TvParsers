@@ -10,8 +10,23 @@
 [Обычный api](src/cartoon_network.py) <br />
 [Ссылки по дням](src/beyaz_tv.py)
 
-## Есть временная метка (дата по которой можно определить день):
-| Парсер | Наличие |
+## Парсеры с точной временной меткой (дата по которой можно определить день):
+| Парсер | Источник |
 | --- | --- |
-| [TV 41](src/tv41.py) | + |
+| [Cartoon Network](src/cartoon_network.py) | Из API |
+| [Dost TV](src/dost_tv.py) | Запрос к серверу включает дату и время | 
+| [Haber Global](src/cartoon_network.py) | Из API |
+| [Star TV](src/star_tv.py) | Из API |
+| [TRT ÇOCUK](src/trt_cocuk.py) | Из JSON, получаемого при вызове JS метода |
+| [TRT HABER](src/trt_haber.py) | Из URL запроса |
+| [TRT MUZIC](src/trt_muzic.py) | Из html аттрибута |
+| [trt spor yıldız](src/trt_spor_yildizi.py) | Из JSON внутри скрипта |
+| [TRT1](src/trt1.py) | Из html аттрибута |
+| [TV 41](src/tv41.py) | В заголовке текста точная дата |
+#### Остальные парсеры пытаются угать дату и время беря за начало либо текущий день, либо понедельник
 
+## Парсеры с угадыванием времени у текущей телепередачи (просто нет времени начала):
+| Парсер | Комментарий |
+| --- | --- |
+| [TRT belgesel](src/trt_belgesel.py) | Вместо времени надпись: "Gönüllü Veteriner" |
+| [cnn türk](src/cnn_turk.py) | Вместо времени надпись: "Şimdi" |
