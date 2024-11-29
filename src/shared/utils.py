@@ -33,7 +33,7 @@ def is_none_or_empty(string: str):
     if (string is None):
         return True
     
-    return string == "" or string == " " or string == "\t" or string == "\n"
+    return string == "" or string == " " or string == "\t" or string == "\n" or string == "\r"
 
 
 #рекурсивный обход узла, возвращающий текст без тэгов
@@ -59,3 +59,18 @@ def get_node_text(node):
                     stack.insert(index, child)
 
         return result
+
+def replace_spaces(string: str):
+    start = 0
+    end = len(string)
+    for i in string:
+        if (not is_none_or_empty(i)):
+            break
+        start += 1
+
+    for i in reversed(string):
+        if (not is_none_or_empty(i)):
+            break
+        end -= 1
+    
+    return string[start: end]
