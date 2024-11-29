@@ -9,9 +9,9 @@ from shared.options import SaveOptions, read_command_line_options
 from shared.output import run_parser_out_to_csv
 from shared.utils import fill_finish_date_by_next_start_date, get_monday_datetime, get_node_text, is_none_or_empty, replace_spaces
 
-class Tv41Parser(TvParser):
-    __source_url = "https://tv41.com.tr/yayin-akisi/"
-    __channel_name = "TV41"
+class Kanal3Parser(TvParser):
+    __source_url = "https://kanal3.com.tr/yayin-akisi/"
+    __channel_name = "kANAL 3"
     __channel_logo_url = None
     __response_time_zone = timezone(timedelta(hours=3))
 
@@ -23,39 +23,24 @@ class Tv41Parser(TvParser):
 
     def __parse_html(self, html_input: str):
         html = BeautifulSoup(html_input, 'html.parser')
-        day_info = html.find("div", {"class": "entry-content-inner"}).find_all("p")
-
-        date = day_info[0].text
-        day_programs = day_info[1:]
-
-        current_day =self.__parse_date(date)
-        parsed_programs = self.__parse_day_programs(day_programs, current_day)
-        
-
-        fill_finish_date_by_next_start_date(parsed_programs)        
-        return parsed_programs
-
-    def __parse_day_programs(self, day_programs, current_day):
+        programs = html.find("div", {"class": "entry-content"})
+        programs = programs.find("tbody", {"class": "row-striping row-hover"})
         parsed_programs = []
         last_hour = 0
-
-        for program_info in day_programs:
-            program_info = replace_spaces(program_info.text)
-            if (len(program_info) == 0):
-                continue
-
+        current_day = datetime.now(self.__response_time_zone)
+        for program in programs.find_all("tr", recursive=False):
+            program = program.find_all("td")
             datetime_start = self.__parse_time(
-                program_info[0:9], 
+                program[0].text, 
                 current_day
             )
+            show_name = replace_spaces(program[1].text)
 
             if (last_hour > datetime_start.hour):
                 datetime_start += timedelta(days=1)
                 current_day += timedelta(days=1)
+
             last_hour = datetime_start.hour
-
-            show_name = replace_spaces(program_info[9:])
-
             parsed_programs.append(TvProgramData(
                 datetime_start,
                 None,
@@ -66,13 +51,9 @@ class Tv41Parser(TvParser):
                 False
             ))
 
+        fill_finish_date_by_next_start_date(parsed_programs)        
         return parsed_programs
     
-    def __parse_date(self, date) -> datetime:
-        return datetime.strptime(date, "%d.%m.%Y").replace(
-            tzinfo=self.__response_time_zone
-        )
-
     def __parse_time(self, time, current_day) -> datetime:
         day = time.split(":") #20:00
         return current_day.replace(
@@ -83,9 +64,7 @@ class Tv41Parser(TvParser):
         )
 
 
-
-
 if (__name__=="__main__"):
     options = read_command_line_options()
-    parser = Tv41Parser(options.parser_options)
+    parser = Kanal3Parser(options.parser_options)
     run_parser_out_to_csv(parser, options.save_options)

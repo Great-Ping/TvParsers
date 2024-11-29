@@ -9,7 +9,7 @@ from shared.options import SaveOptions, read_command_line_options
 from shared.output import run_parser_out_to_csv
 from shared.utils import fill_finish_date_by_next_start_date, get_monday_datetime, get_node_text, is_none_or_empty, replace_spaces
 
-class HaberGlobalParser(TvParser):
+class ErTVParser(TvParser):
     __source_url = "https://www.ertv.com.tr/yayin-akisi-s7.html"
     __channel_name = "er tv"
     __channel_logo_url = None
@@ -83,5 +83,5 @@ class HaberGlobalParser(TvParser):
 
 if (__name__=="__main__"):
     options = read_command_line_options()
-    parser = HaberGlobalParser(options.parser_options)
+    parser = ErTVParser(options.parser_options)
     run_parser_out_to_csv(parser, options.save_options)
