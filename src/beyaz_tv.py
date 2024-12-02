@@ -1,5 +1,6 @@
 
 import asyncio
+from typing import Tuple
 import aiohttp
 from datetime import datetime, UTC, timedelta, timezone
 from bs4 import BeautifulSoup
@@ -14,6 +15,7 @@ class BeyazTvParser(TvParser):
     __channel_name = "Beyaz TV"
     __channel_logo_url = None
     __response_time_zone = timezone(timedelta(hours=3))
+    __remove_last = True
     __day_urls = [
         "https://beyaztv.com.tr/yayin-akisi/pazartesi/",
 		"https://beyaztv.com.tr/yayin-akisi/salı/",
@@ -46,11 +48,11 @@ class BeyazTvParser(TvParser):
                     for program in day[1]
             ]            
         
-            fill_finish_date_by_next_start_date(result)
+            fill_finish_date_by_next_start_date(result, self.__remove_last)
             
             return result
 
-    async def parse_day_async(self, session, http_url, current_day) -> (datetime, list[TvProgramData]):
+    async def parse_day_async(self, session, http_url, current_day) -> Tuple[datetime, list[TvProgramData]]:
         async with session.get(http_url) as resp: 
             return (current_day, self.parse_day_html(await resp.text(), current_day))
 
@@ -59,7 +61,7 @@ class BeyazTvParser(TvParser):
         parsed_programs = []
 
         programs = html.find("tbody").find_all("tr")
-        prev_hour = 0
+        last_hour = 0
 
         for program in programs:
             data = program.find_all("td", recursive=False)
@@ -70,9 +72,9 @@ class BeyazTvParser(TvParser):
 
             program_name = get_node_text(data[2])
 
-            if (prev_hour > hours):
+            if (last_hour > hours):
                 current_day += timedelta(days=1)
-            prev_hour = hours
+            last_hour = hours
 
             datetime_start = current_day.replace(
                 hour=hours,

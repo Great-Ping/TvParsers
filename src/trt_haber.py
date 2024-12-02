@@ -14,7 +14,7 @@ class TrtHaberParser(TvParser):
     __channel_name = "TRT HABER"
     __channel_logo_url = None
     __response_time_zone = timezone(timedelta(hours=3))
-
+    __remove_last = True
     async def parse_async(self) -> list[TvProgramData]:
         async with aiohttp.ClientSession() as session:
             http_urls:list[str]
@@ -34,7 +34,7 @@ class TrtHaberParser(TvParser):
                     for program in day[1]
             ]            
         
-            fill_finish_date_by_next_start_date(result)
+            fill_finish_date_by_next_start_date(result, self.__remove_last)
             
             return result
 
@@ -50,7 +50,7 @@ class TrtHaberParser(TvParser):
         parsed_programs = []
 
         programs = html.find("ul", {"class":"epg-list"}).find_all("li", recursive=False)
-        prev_hour = 0
+        last_hour = 0
 
         for program in programs:
            
@@ -61,9 +61,9 @@ class TrtHaberParser(TvParser):
 
             program_name = program.find("div",{"class": "program-name"}).next
 
-            if (prev_hour > hours):
+            if (last_hour > hours):
                 current_day += timedelta(days=1)
-            prev_hour = hours
+            last_hour = hours
 
             datetime_start = current_day.replace(
                 hour=hours,

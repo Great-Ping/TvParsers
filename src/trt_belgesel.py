@@ -13,13 +13,14 @@ class TrtBelgeselParser(TvParser):
     __channel_name = "TRT belgesel"
     __channel_logo_url = None
     __response_time_zone = timezone(timedelta(hours=3))
+    __remove_last = True
 
     async def parse_async(self) -> list[TvProgramData]:
         async with aiohttp.ClientSession() as session:
             async with session.get(self.__source_url) as resp:
                 current_day = datetime.now(self.__response_time_zone) 
                 result = self.parse_day_html(await resp.text(), current_day)
-                fill_finish_date_by_next_start_date(result)
+                fill_finish_date_by_next_start_date(result, self.__remove_last)
                 return result
 
     def parse_day_html(self, html_text:str, current_day:datetime):
@@ -27,7 +28,7 @@ class TrtBelgeselParser(TvParser):
         parsed_programs = []
 
         programs = html.find("div", {"id":"epg"}).find_all("a")
-        prev_hour = 0
+        last_hour = 0
 
         for program in programs:
            
@@ -43,9 +44,9 @@ class TrtBelgeselParser(TvParser):
 
             program_name = program.next.next
 
-            if (prev_hour > hours):
+            if (last_hour > hours):
                 current_day += timedelta(days=1)
-            prev_hour = hours
+            last_hour = hours
 
             datetime_start = current_day.replace(
                 hour=hours,

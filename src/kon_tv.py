@@ -15,6 +15,7 @@ class KonTvParser(TvParser):
     #__channel_logo_url = "https://www.semerkandtv.com.tr/Content/img/logo.png"
     __channel_logo_url = None
     __response_time_zone = timezone(timedelta(hours=3))
+    __remove_last = True
 
     async def parse_async(self) -> list[TvProgramData]:
         async with aiohttp.ClientSession() as session:
@@ -38,7 +39,7 @@ class KonTvParser(TvParser):
                 key=lambda x: x.datetime_start
             )
 
-        fill_finish_date_by_next_start_date(parsed_programs)        
+        fill_finish_date_by_next_start_date(parsed_programs, self.__remove_last)        
 
         return parsed_programs
 

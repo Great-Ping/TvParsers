@@ -14,9 +14,9 @@ from shared.utils import fill_finish_date_by_next_start_date, is_none_or_empty
 class Trt2Parser(TvParser):
     __source_url = "https://www.trt.net.tr/yayin-akisi"
     __channel_name = "trt 2"
-    #__channel_logo_url = "https://www.semerkandtv.com.tr/Content/img/logo.png"
     __channel_logo_url = None
     __response_time_zone = timezone(timedelta(hours=3))
+    __remove_last = True
 
     async def parse_async(self) -> list[TvProgramData]:
         async with aiohttp.ClientSession() as session:
@@ -32,7 +32,7 @@ class Trt2Parser(TvParser):
         current_day = datetime.now(self.__response_time_zone)
         parsed_programs = self.__parse_day_programs(channel_programs, current_day)
 
-        fill_finish_date_by_next_start_date(parsed_programs)        
+        fill_finish_date_by_next_start_date(parsed_programs, self.__remove_last)        
         return parsed_programs
     
     def __select_target_channel_tag(self, html, target_channel_name):

@@ -14,6 +14,7 @@ class Tv41Parser(TvParser):
     __channel_name = "TV41"
     __channel_logo_url = None
     __response_time_zone = timezone(timedelta(hours=3))
+    __remove_last = True
 
     async def parse_async(self) -> list[TvProgramData]:
         async with aiohttp.ClientSession() as session:
@@ -32,7 +33,7 @@ class Tv41Parser(TvParser):
         parsed_programs = self.__parse_day_programs(day_programs, current_day)
         
 
-        fill_finish_date_by_next_start_date(parsed_programs)        
+        fill_finish_date_by_next_start_date(parsed_programs, self.__remove_last)        
         return parsed_programs
 
     def __parse_day_programs(self, day_programs, current_day):

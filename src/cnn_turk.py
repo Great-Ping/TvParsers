@@ -13,13 +13,14 @@ class CnnTurkParser(TvParser):
     __channel_name = "cnn türk"
     __channel_logo_url = None
     __response_time_zone = timezone(timedelta(hours=3))
+    __remove_last = True
 
     async def parse_async(self) -> list[TvProgramData]:
         async with aiohttp.ClientSession() as session:
             async with session.get(self.__source_url) as resp:
                 result = self.__parse_html(await resp.text())    
 
-            fill_finish_date_by_next_start_date(result)
+            fill_finish_date_by_next_start_date(result, self.__remove_last)
             return result
 
     def __parse_html(self, html_text:str):
@@ -27,7 +28,6 @@ class CnnTurkParser(TvParser):
         parsed_programs = []
 
         program_days = html.find("div", {"class":"tab-content"})
-        prev_hour = 0
         current_day = get_monday_datetime(self.__response_time_zone)
 
         for day_programs in program_days.find_all("div", {"class":"tab-item"}):
