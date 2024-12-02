@@ -35,8 +35,7 @@ class ErTVParser(TvParser):
                 self.__parse_day_programs(current_day_programs, current_day)
             )
             current_day += timedelta(days=1)
-
-        fill_finish_date_by_next_start_date(parsed_programs)        
+   
         return parsed_programs
 
     def __parse_day_programs(self, current_day_programs, current_day):
@@ -59,7 +58,8 @@ class ErTVParser(TvParser):
                 None,
                 False
             ))
-
+            
+        fill_finish_date_by_next_start_date(parsed_programs)     
         return parsed_programs
     
     def __filter_text(self, tag):
