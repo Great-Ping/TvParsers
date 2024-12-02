@@ -38,11 +38,12 @@ class StartTvParser(TvParser):
         start_time_str = program["startTime"]
         program_name = program["title"]
 
-        description = program["description"]
-        content = program["content"]
+        description = None
+        # description = program["description"]
+        # content = program["content"]
         
-        if (is_none_or_empty(description) and content != None):
-            description = content["plain_summary"]
+        # if (is_none_or_empty(description) and content != None):
+        #     description = content["plain_summary"]
 
         datetime_finish = self.parse_time(end_time_str)
         datetime_start = self.parse_time(start_time_str)
