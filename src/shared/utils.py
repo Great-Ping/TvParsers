@@ -64,6 +64,7 @@ def get_node_text(node):
 
         return result
 
+#Удаляет пустые символы из начала и конца строк
 def replace_spaces(string: str):
     start = 0
     end = len(string)

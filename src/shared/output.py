@@ -4,13 +4,15 @@ import os
 from typing import *
 from aiofile import async_open
 
+from shared.utils import replace_spaces
+
 from .options import SaveOptions
 from .models import TvParser, TvProgramData
 
 def escape(input: str):
     if (input is None):
         return "\"\""
-
+    
     input = input.replace("\"", "\"\"")
     return f"\"{input}\""
 
@@ -21,6 +23,11 @@ def __format_date(date: Union[datetime, None]):
     return date.isoformat("T", "seconds")
     
 def __to_csv_line(data:TvProgramData, options: SaveOptions):
+    data.channel = replace_spaces(data.channel)
+    data.title = replace_spaces(data.title)
+    if (data.description != None):
+        data.description = replace_spaces(data.description)
+
     return (f"{escape(__format_date(data.datetime_start))}" 
     + f"{options.separator}{escape(__format_date(data.datetime_finish))}"
     + f"{options.separator}{escape(data.channel)}"
