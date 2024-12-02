@@ -1,5 +1,6 @@
 
 import asyncio
+from typing import Tuple
 import aiohttp
 from datetime import datetime, UTC, timedelta, timezone
 from bs4 import BeautifulSoup
@@ -38,13 +39,13 @@ class TrtHaberParser(TvParser):
             
             return result
 
-    async def parse_day_async(self, session, http_url) -> (datetime, list[TvProgramData]):
+    async def parse_day_async(self, session, http_url) -> Tuple[datetime, list[TvProgramData]]:
         date_from_url = http_url.split("/")[-1]
         current_day = datetime.strptime(date_from_url, "%d-%m-%Y").replace(tzinfo=self.__response_time_zone)
 
         async with session.get(http_url) as resp: 
             return self.parse_day_html(await resp.text(), current_day)
-
+        
     def parse_day_html(self, html_text:str, current_day:datetime):
         html = BeautifulSoup(html_text, 'html.parser')
         parsed_programs = []
@@ -71,8 +72,8 @@ class TrtHaberParser(TvParser):
                 second=0,
                 tzinfo=self.__response_time_zone
             )
-            
-            parsed_programs.append(TvProgramData(
+
+            tv_program = TvProgramData(
                 datetime_start,
                 None,
                 self.__channel_name,
@@ -80,9 +81,22 @@ class TrtHaberParser(TvParser):
                 self.__channel_logo_url,
                 None,
                 False
-            ))
+            )
+
+            self.handle_special_cases(tv_program)
+            parsed_programs.append(tv_program)
 
         return (current_day, parsed_programs)
+    
+
+    #На данный момент удалят пробелы для 
+    @staticmethod
+    def handle_special_cases(program: TvProgramData):
+        program.title = program.title.replace(
+            "Hava Durumu ",
+            "Hava Durumu"
+        )
+
 
     
     def get_day_urls(self, html_text) -> list[str]:
