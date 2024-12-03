@@ -4,7 +4,7 @@ default:
     - name: --output
       required: false
       aliases: ["-o"] 
-      description: абсолютный путь, куда будет сохранён итоговый csv-файл, по умолчанию "out.csv"
+      description: путь, куда будет сохранён итоговый csv-файл, по умолчанию "out.csv"
       example: python ikra_tv.py -o /usr/trt1.csv
     - name: --sparator
       required: false
