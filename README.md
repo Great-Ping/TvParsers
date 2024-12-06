@@ -15,13 +15,13 @@
 | --- | --- |
 | [Cartoon Network](src/cartoon_network.py) | Из API |
 | [Dost TV](src/dost_tv.py) | Запрос к серверу включает дату и время | 
-| [Haber Global](src/cartoon_network.py) | Из API |
+| [Haber Global](src/cartoon_network.py) | Из html атрибутов |
 | [Star TV](src/star_tv.py) | Из API |
 | [TRT ÇOCUK](src/trt_cocuk.py) | Из JSON, получаемого при вызове JS метода |
 | [TRT HABER](src/trt_haber.py) | Из URL запроса |
-| [TRT MUZIC](src/trt_muzic.py) | Из html аттрибута |
+| [TRT MUZIC](src/trt_muzic.py) | Из html атрибута |
 | [trt spor yıldız](src/trt_spor_yildizi.py) | Из JSON внутри скрипта |
-| [TRT1](src/trt1.py) | Из html аттрибута |
+| [TRT1](src/trt1.py) | Из html атрибута |
 | [TV 41](src/tv41.py) | В заголовке текста точная дата |
 #### Остальные парсеры пытаются угать дату и время беря за начало либо текущий день, либо понедельник
 
