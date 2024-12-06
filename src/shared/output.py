@@ -4,7 +4,7 @@ import os
 from typing import *
 from aiofile import async_open
 
-from shared.utils import replace_spaces
+from shared.utils import is_none_or_empty, replace_spaces
 
 from .options import SaveOptions
 from .models import TvParser, TvProgramData

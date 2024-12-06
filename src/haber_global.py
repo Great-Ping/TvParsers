@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 from shared.models import TvParser, TvProgramData
 from shared.options import SaveOptions, read_command_line_options
 from shared.output import run_parser_out_to_csv
-from shared.utils import fill_finish_date_by_next_start_date, get_monday_datetime, is_none_or_empty
+from shared.utils import fill_finish_date_by_next_start_date, get_monday_datetime, get_node_text, is_none_or_empty
 
 class HaberGlobalParser(TvParser):
     __source_url = "https://haberglobal.com.tr/yayin-akisi"
@@ -42,7 +42,7 @@ class HaberGlobalParser(TvParser):
                 program_info.find("li").text, 
                 current_day
             )
-            show_name = program_info.find("span", {"class": "program-name"})
+            show_name = get_node_text(program_info.find("span", {"class": "program-name"}))
 
             parsed_programs.append(TvProgramData(
                 datetime_start,
