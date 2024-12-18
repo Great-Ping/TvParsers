@@ -47,32 +47,44 @@ class KonTvParser(TvParser):
         parsed_programs = []
         last_hour = 0
         for program_info in current_day_programs.text.split("\r\n"):
-            program_info = program_info.split("\xa0\xa0\xa0\xa0 ")
-            if (len(program_info) <= 1):
-                continue
-
-            datetime_start = self.__parse_time(program_info[0], current_day)       
-            show_name = self.__trim_last_whitespaces(
-                program_info[1].replace("\xa0", "")
-            )
-            if (datetime_start.hour < last_hour):
-                datetime_start += timedelta(days=1)
-                current_day += timedelta(days=1)
-
-            last_hour = datetime_start.hour
-
-            parsed_programs.append(TvProgramData(
-                datetime_start,
-                None,
-                self.__channel_name,
-                show_name,
-                self.__channel_logo_url,
-                None,
-                False
-            ))
+            try: 
+                tv_program = self.__try_parse_tv_program(program_info, current_day, last_hour)
+                if (tv_program is not None):
+                    parsed_programs.append(tv_program)
+                    last_hour = tv_program.datetime_start.hour
+            except  Exception as ex:
+                pass
 
         return parsed_programs
     
+
+    def __try_parse_tv_program(self, program_info, current_day, last_hour):
+        program_info = program_info.split("\xa0\xa0\xa0\xa0 ")
+        if (len(program_info) <= 1):
+            return None
+
+        datetime_start = self.__parse_time(program_info[0], current_day)       
+        show_name = self.__trim_last_whitespaces(
+            program_info[1].replace("\xa0", "")
+        )
+
+        if (len(show_name) < 1):
+            return None
+
+        if (datetime_start.hour < last_hour):
+            datetime_start += timedelta(days=1)
+            current_day += timedelta(days=1)
+
+        return TvProgramData(
+            datetime_start,
+            None,
+            self.__channel_name,
+            show_name,
+            self.__channel_logo_url,
+            None,
+            False
+        )
+
     def __trim_last_whitespaces(self, string: str):
         spaces_count = 0
         for i in reversed(string):
