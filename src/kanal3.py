@@ -24,34 +24,16 @@ class Kanal3Parser(TvParser):
 
     def __parse_html(self, html_input: str):
         html = BeautifulSoup(html_input, 'html.parser')
-        programs = html.find("div", {"class": "entry-content"})
-        programs = programs.find("tbody", {"class": "row-striping row-hover"})
+        programs = html.find_all("div", {"class": "sow-tabs-panel"})
         parsed_programs = []
-        last_hour = 0
-        current_day = datetime.now(self.__response_time_zone)
-        for program in programs.find_all("tr", recursive=False):
-            program = program.find_all("td")
-            datetime_start = self.__parse_time(
-                program[0].text, 
-                current_day
+        current_day = get_monday_datetime(self.__response_time_zone)
+
+        for day_programs in programs:
+            parsed_programs.extend(
+                self.__parse_day_programs(day_programs.find("tbody"), current_day)
             )
-            show_name = replace_spaces(program[1].text)
-
-            if (last_hour > datetime_start.hour):
-                datetime_start += timedelta(days=1)
-                current_day += timedelta(days=1)
-
-            last_hour = datetime_start.hour
-            parsed_programs.append(TvProgramData(
-                datetime_start,
-                None,
-                self.__channel_name,
-                show_name,
-                self.__channel_logo_url,
-                None,
-                False
-            ))
-
+            current_day += timedelta(days=1)
+            
         fill_finish_date_by_next_start_date(parsed_programs, self.__remove_last)        
         return parsed_programs
     
@@ -64,6 +46,28 @@ class Kanal3Parser(TvParser):
             tzinfo=self.__response_time_zone
         )
 
+    def __parse_day_programs(self, day_programs, current_day):
+        parsed_programs = []
+
+        for program in day_programs.find_all("tr", recursive=False):
+            program = program.find_all("td")
+            datetime_start = self.__parse_time(
+                program[0].text, 
+                current_day
+            )
+            show_name = replace_spaces(program[1].text)
+
+            parsed_programs.append(TvProgramData(
+                datetime_start,
+                None,
+                self.__channel_name,
+                show_name,
+                self.__channel_logo_url,
+                None,
+                False
+            ))
+        
+        return sorted(parsed_programs, key=lambda x: x.datetime_start)
 
 if (__name__=="__main__"):
     options = read_command_line_options()
