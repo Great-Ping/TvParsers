@@ -42,11 +42,10 @@ class TrtSportYildiziParser(TvParser):
             datetime_finish = self.__parse_time(program_info["endtime"])
                                                
             show_name = program_info["title"]
-            show_description = program_info["synopsis"]
-
+            show_description = program_info["synopsis"].replace("''", "\"").replace("\n", " ")
+            
             if (is_none_or_empty(show_description)):
                 show_description = None
-
 
             parsed_programs.append(TvProgramData(
                 datetime_start,
@@ -77,7 +76,10 @@ class TrtSportYildiziParser(TvParser):
     def __select_channel_programs(epg_day, channel_id):
         for channel in epg_day["tvChannels"]:
             if (channel["id"] == channel_id):
-                return channel["past"] + channel["upcoming"]
+                current = []
+                if channel["current"] != {}:
+                    current = [channel["current"]]
+                return channel["past"] + current + channel["upcoming"]
         
     def __find_epg(self, rows):
         if (rows[4]["type"] == "detail-row"):
